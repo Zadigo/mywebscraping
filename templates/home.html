@@ -19,7 +19,7 @@
             <div class="card">
                 <div class="card-body text-center">
                     <h4 class="h1 text-primary fw-bold">{{ number_of_reviews|default:0 }}</h4>
-                    <p class="m-0">Reviews</p>
+                    <p class="m-0">Review{{ number_of_reviews|pluralize }}</p>
                 </div>
             </div>
         </div>

@@ -16,3 +16,4 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ['review_id', 'rating', 'created_on']
     date_hierarchy = 'created_on'
     readonly_fields = ['review_id']
+    list_per_page = 50
