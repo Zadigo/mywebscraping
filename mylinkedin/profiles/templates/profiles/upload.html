@@ -1,0 +1,13 @@
+{% extends "base_site.html" %}
+
+{% block title %}Upload{% endblock %}
+
+{% block container %}
+<section class="my-5">
+    <div class="row">
+        <div class="col-md-8 col-sm-12 offset-md-2">
+            {% include "profiles/includes/form.html" with title="Linkedin profiles" upload_field_name="profiles" %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base_site.html" %}
+{% load cache %}
+
+{% block title %}Explore{% endblock %}
+
+{% block container %}
+<section class="my-5">
+    <div class="row">
+        <div class="col-sm-12 col-md-8 offset-md-2">
+            <form action="get" class="card">
+                <div class="card-body">
+                    <select class="form-select" name="company" aria-label="Default select example">
+                        <option selected>Open this select menu</option>
+                        {% for company in companies %}
+                            <option value="{{ company.id }}">{{ company.name }}</option>                    
+                        {% endfor %}
+                    </select>
+                    <button type="submit">Go to</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-sm-12 col-md-8 offset-md-2">
+            <form method="{% url 'linkedin:company_profiles' company.id %}" class="card" method="get">
+                <div class="card-body">
+                    <div class="d-flex justify-content-around">
+                        <input type="text" class="form-control me-3" value="{{ searched_search }}" placeholder="Firstname, lastname, company..." name="search">
+                        <input type="text" class="form-control me-3" value="{{ searched_position }}" placeholder="Position..." name="position">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="of-interest" name="interest">
+                        <label class="form-check-label" for="of-interest">Only of interest</label>
+                    </div>
+                    <a href="{% url 'linkedin:company_profiles' company.id %}" class="btn btn-primary {% if disable_undo_button %}disabled{% endif %}">Undo</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12 col-md-8 offset-md-2">
+            <form class="card" method="post" enctype="multipart/form-data">
+                <div class="card-header">
+                    <h2 class="h3 m-0">{{ company.name }}</h2>
+                </div>
+                
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for profile in profiles %}
+                            <div class="list-group-item d-flex justify-content-between {% if profile.of_interest %}bg-light{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="form-check me-3">
+                                        <input id="linkedin-profile" class="form-check-input" type="checkbox" value="{{ profile.id }}" name="linkedin-profile">
+                                    </div>
+                                    <span>{{ profile.fullname }}</span>
+                                    <span class="text-body-tertiary ms-3">{{ profile.position|truncatechars:30 }}</span>
+
+                                    {% if profile.of_interest %}
+                                        <span class="badge rounded-pill text-bg-warning ms-2 text-white">
+                                            <i class="fas fa-star"></i>
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <a href="{{ profile.url }}" class="btn btn-sm btn-secondary btn-rounded shadow-none" target="_blank" rel="nofollow noreferrer">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

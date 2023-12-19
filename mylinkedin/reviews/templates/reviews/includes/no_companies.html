@@ -1,0 +1,8 @@
+{% extends "layouts/no_companies.html" %}
+
+{% block card_cta %}
+<a href="{% url 'reviews:file_upload' %}" class="btn btn-lg btn-primary btn-rounded">
+    <i class="fas fa-upload me-2"></i>
+    Upload a file
+</a>
+{% endblock %}

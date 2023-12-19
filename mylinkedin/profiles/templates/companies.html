@@ -1,0 +1,46 @@
+{% extends "base_site.html" %}
+{% load cache %}
+
+{% block title %}LinkedIn companies{% endblock %}
+
+{% block container %}
+<section class="my-5">
+    <div class="row">
+        <div class="col-sm-12 col-md-12 my-3 mb-4">
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'uploads:file_upload' %}" class="btn btn-primary btn-rounded btn-lg">
+                    <i class="fa fa-upload" class="me-2"></i>
+                    Upload file
+                </a>
+            </div>
+        </div>
+
+        {% cache 60 "companies" %}
+        <div class="row">
+            {% for company in companies %}
+            <div class="col-sm-12 col-md-3 mt-1">
+                <div class="card">
+                    <div class="card-body">
+                        <a href="{% url 'uploads:profiles' company.id %}">
+                            <h3 class="h4">{{ company.name|truncatechars:15 }}</h3>
+                            <p>{{ company.linkedinprofile_set.count }} contacts</p>
+                        </a>
+                        <a href="{{ company.linkedin }}" class="btn btn-sm btn-rounded btn-primary me-2 shadow-none" target="_blank" rel="noreferrer nofollow"><i class="fab fa-linkedin"></i></a>
+                        <a href="{{ company.website }}" class="btn btn-sm btn-rounded btn-primary shadow-none" target="_blank" rel="noreferrer nofollow"><i class="fas fa-link"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-sm-12 col-md-12 mt-1">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>No companies</h3>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endcache %}
+        </div>
+    </div>
+</section>
+{% endblock %}

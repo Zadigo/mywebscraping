@@ -1,0 +1,13 @@
+{% load i18n static %}
+
+<div class="col-sm-12 col-md-12">
+    <div class="card">
+        <div class="card-body text-center">
+            <img src="{% get_media_prefix %}images/img1.png" alt="" class="img-fluid">
+            
+            <div class="mt-4">
+                {% block card_cta %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>

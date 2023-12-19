@@ -1,0 +1,26 @@
+<form class="card" action="{% block url %}{% endblock %}" method="post" enctype="multipart/form-data">
+    {% if title %}
+        <div class="card-header">
+            <h2 class="h4 mb-0">{{ title }}</h2>
+        </div>
+    {% endif %}
+
+    <div class="card-body">
+        {% csrf_token %}
+
+        {% for key, message in form.errors.items %}
+        <div class="alert alert-danger">
+            {{ key }} {{ message }}
+        </div>
+        {% endfor %}
+
+        <p class="text-bg-tertiary">
+            {% block hint %}{% endblock %}
+        </p>
+
+        <input type="file" name="{{ upload_field_name }}" id="{{ upload_field_name }}" class="form-control" accept=".csv,.json">
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary mt-4 btn-rounded btn-lg">Upload</button>
+        </div>
+    </div>
+</form>

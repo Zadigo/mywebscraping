@@ -1,0 +1,32 @@
+{% extends "layouts/company_page.html" %}
+{% load cache %}
+
+{% block title %}LinkedIn companies{% endblock %}
+
+{% block base_cta %}
+<a href="{% url 'linkedin:file_upload' %}" class="btn btn-primary btn-rounded">
+    <i class="fa fa-upload" class="me-2"></i>
+    Upload file
+</a>
+{% endblock %}
+
+{% block iteration_block %}
+{% for company in companies %}
+<div class="col-sm-12 col-md-3 mt-1">
+    <article class="card">
+        <div class="card-body">
+            <a href="{% url 'linkedin:company_profiles' company.id %}">
+                <h3 class="h4">{{ company.name|truncatechars:15 }}</h3>
+                <p>{{ company.linkedinprofile_set.count }} contacts</p>
+            </a>
+            <a href="{{ company.linkedin }}" class="btn btn-sm btn-rounded btn-primary me-2 shadow-none"
+                target="_blank" rel="noreferrer nofollow"><i class="fab fa-linkedin"></i></a>
+            <a href="{{ company.website }}" class="btn btn-sm btn-rounded btn-primary shadow-none" target="_blank"
+                rel="noreferrer nofollow"><i class="fas fa-link"></i></a>
+        </div>
+    </article>
+</div>
+{% empty %}
+    {% include "profiles/includes/no_companies.html" %}
+{% endfor %}
+{% endblock %}

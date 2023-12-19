@@ -1,0 +1,28 @@
+{% extends "base_site.html" %}
+
+{% block title %}Upload{% endblock %}
+
+{% block container %}
+<section class="my-5">
+    <div class="row">
+        <div class="col-md-8 col-sm-12 offset-md-2">
+            <form class="card" action="{% url 'uploads:file_upload' %}" accept="text/csv" method="post" enctype="multipart/form-data">
+                <div class="card-body">
+                    {% csrf_token %}
+
+                    {% for key, message in form.errors.items %}
+                        <div class="alert alert-danger">
+                            {{ key }} {{ message }}
+                        </div>
+                    {% endfor %}
+
+                    <input type="file" name="profiles" id="profiles" class="form-control">
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary mt-4">Upload</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

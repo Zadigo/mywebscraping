@@ -1,0 +1,72 @@
+{% extends "base_site.html" %}
+{% load cache iteration %}
+
+{% block title %}Explore{% endblock %}
+
+{% block container %}
+<section class="my-5">
+    <div class="row">
+        <div class="col-sm-12 col-md-8 offset-md-2">
+            <form action="get" class="card">
+                <div class="card-body">
+                    <select class="form-select" name="company" aria-label="Default select example">
+                        <option selected>Open this select menu</option>
+                        {% for company in companies %}
+                        <option value="{{ company.id }}">{{ company.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">Go to</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12 col-md-8 offset-md-2">
+            <form method="{% url 'linkedin:company_profiles' company.id %}" class="card" method="get">
+                <div class="card-body">
+                    <div class="d-flex justify-content-around">
+                        <input type="text" class="form-control me-3" value="{{ searched_search }}" placeholder="Review text..." name="search">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+
+                    <a href="{% url 'linkedin:company_profiles' company.id %}" class="btn btn-primary {% if disable_undo_button %}disabled{% endif %}">Undo</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-sm-12 col-md-8 offset-md-2">
+            <form class="card" method="post" enctype="multipart/form-data">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h3 m-0">{{ company.name }}</h2>
+                    <a href="{% url 'reviews:download_csv_file' %}" class="btn btn-secondary btn-sm btn-rounded" target="_parent" rel="nofollow noreferrer">
+                        <i class="fas fa-download ms-2"></i>
+                        Download csv
+                    </a>
+                </div>
+
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for review in reviews %}
+                        <div
+                            class="list-group-item d-flex justify-content-between {% if profile.of_interest %}bg-light{% endif %}">
+                            <div class="d-flex align-items-center">
+                                <div class="form-check me-3">
+                                    <input id="linkedin-profile" class="form-check-input" type="checkbox" value="{{ review.id }}" name="linkedin-profile">
+                                </div>
+                                <div class="mb-0 ms-3">
+                                    <p class="mb-1">{{ review.reviewer_name }} | {% for i in review.rating|times %}<i class="fas fa-star text-body-tertiary"></i>{% endfor %}</p>
+                                    <p>{{ review.text }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

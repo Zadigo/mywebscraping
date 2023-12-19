@@ -1,0 +1,90 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+
+{% block title %}Scraping database{% endblock %}
+
+{% block container %}
+<section class="my-5">
+    <div class="row">
+        <div class="col-sm-12 col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h4 class="h1 text-primary fw-bold">{{ number_of_companies|default:0 }}</h4>
+                    <p class="m-0">Companies</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-sm-12 col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h4 class="h1 text-primary fw-bold">{{ number_of_companies|default:0 }}</h4>
+                    <p class="m-0">Companies</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-sm-12 col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h4 class="h1 text-primary fw-bold">{{ number_of_companies|default:0 }}</h4>
+                    <p class="m-0">Companies</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-sm-12 col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h4 class="h1 text-primary fw-bold">{{ number_of_companies|default:0 }}</h4>
+                    <p class="m-0">Companies</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12 col-md-6">
+            <div class="card mt-2">
+                <div class="card-body">
+                    <img src="{% get_media_prefix %}images/img1.png" alt="" class="img-fluid">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-md-6">
+            <div class="card mt-2">
+                <div class="card-body">
+                    <canvas id="myChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<script>
+    const ctx = document.getElementById('myChart');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
