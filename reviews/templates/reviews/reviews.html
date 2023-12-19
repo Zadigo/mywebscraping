@@ -5,6 +5,7 @@
 
 {% block container %}
 <section class="my-5">
+    {% comment %}
     <div class="row">
         <div class="col-sm-12 col-md-8 offset-md-2">
             <form action="get" class="card">
@@ -20,7 +21,9 @@
             </form>
         </div>
     </div>
+    {% endcomment %}
 
+    {% comment %}
     <div class="row">
         <div class="col-sm-12 col-md-8 offset-md-2">
             <form method="{% url 'linkedin:company_profiles' company.id %}" class="card" method="get">
@@ -35,12 +38,22 @@
             </form>
         </div>
     </div>
+    {% endcomment %}
 
     <div class="row mt-4">
         <div class="col-sm-12 col-md-8 offset-md-2">
+            <form action="{% url 'reviews:calculate_sentiment' company.id %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary btn-sm btn-rounded">
+                    <i class="fas fa-download ms-2"></i>
+                    Calculate sentiment
+                </button>
+            </form>
+
             <form class="card" method="post" enctype="multipart/form-data">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h2 class="h3 m-0">{{ company.name }}</h2>
+                
                     <a href="{% url 'reviews:download_csv_file' %}" class="btn btn-secondary btn-sm btn-rounded" target="_parent" rel="nofollow noreferrer">
                         <i class="fas fa-download ms-2"></i>
                         Download csv

@@ -15,7 +15,7 @@ from django.urls import reverse_lazy
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, FormView, ListView, View
-from flask import redirect
+from django.shortcuts import redirect
 
 from profiles import utils
 from profiles.forms import FileUploadForm, ProfileForm

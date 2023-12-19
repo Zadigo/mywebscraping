@@ -1,0 +1,35 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+textblob = "*"
+pandas = "*"
+matplotlib = "*"
+django-extensions = "*"
+gunicorn = "*"
+pillow = "*"
+djangorestframework = "*"
+django-cors-headers = "*"
+markdown = "*"
+django-filter = "*"
+django-imagekit = "*"
+redis = "*"
+hiredis = "*"
+psycopg2 = "*"
+whitenoise = "*"
+django-debug-toolbar = "*"
+pypdf = "*"
+nltk = "*"
+pymemcache = "*"
+requests = "*"
+seaborn = "*"
+autometrics = "*"
+numpy = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"

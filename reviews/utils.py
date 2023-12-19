@@ -1,5 +1,7 @@
 import re
+
 from django.db.models import Value
+
 
 def clean_reviews(reviews):
     """Clean the text in the dictionnary for

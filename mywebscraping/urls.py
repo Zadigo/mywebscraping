@@ -10,7 +10,6 @@ urlpatterns = [
     path('reviews/', include('reviews.urls')),
     path('linkedin/', include('profiles.urls')),
     path('admin/', admin.site.urls),
-    re_path(r'^upload$', views.HomeView.as_view(), name='file_upload'),
     re_path(r'^$', views.HomeView.as_view(), name='home')
 ]
 

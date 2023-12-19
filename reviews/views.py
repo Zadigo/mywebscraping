@@ -1,19 +1,40 @@
 import csv
 import json
+from wsgiref.util import request_uri
 
 import pandas
+from asgiref.sync import sync_to_async
+from django.contrib import messages
+from django.contrib.messages import add_message
 from django.db import transaction
 from django.http.response import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.crypto import get_random_string
-from django.views.generic import DetailView, FormView, ListView, View
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
+from django.views.generic import DetailView, FormView, ListView, View
+from mywebscraping.utils import create_filename
 from reviews.forms import ReviewsFileUploadForm
+from reviews.machine_learning.sentiment import CalculateSentiment
 from reviews.models import Business, Review
 from reviews.utils import (clean_business_dictionnary, clean_reviews,
                            parse_number_of_reviews, parse_rating)
+
+
+def create_download_http_response(request, dataframe, file_prefix=None, file_suffix=None):
+    """Writes the results of a dataframe to an 
+    HTTPResponse object"""
+    filename = create_filename(prefix=file_prefix, suffix=file_suffix)
+    response = HttpResponse(
+        content_type='text/csv',
+        headers={
+            'Content-Disposition': f'attachment; filename="{filename}.csv"'
+        }
+    )
+    response.write(dataframe.to_csv(index=False, encoding='utf-8'))
+    return response
 
 
 class ListBusinesses(ListView):
@@ -73,6 +94,9 @@ class CompanyView(DetailView):
 
 
 class CreateReviewsView(FormView):
+    """Upload a file containing Google reviews
+    directly using a form"""
+
     form_class = ReviewsFileUploadForm
     success_url = reverse_lazy('reviews:list_companies')
     template_name = 'reviews/upload.html'
@@ -93,6 +117,7 @@ class CreateReviewsView(FormView):
         content = json.loads(file.read())
 
         if isinstance(content, list):
+            instances = {}
             for business in content:
                 reviews = business.pop('reviews')
                 business.pop('date')
@@ -103,6 +128,10 @@ class CreateReviewsView(FormView):
                     name=business_name,
                     defaults=business
                 )
+                instances[instance] = reviews
+                # self.create_reviews(instance, reviews)
+
+            for key, value in instances.items():
                 self.create_reviews(instance, reviews)
 
         if isinstance(content, dict):
@@ -128,12 +157,23 @@ class DownloadFileView(View):
     def get(self, request, *args, **kwargs):
         queryset = Review.objects.values()
         df = pandas.DataFrame(queryset)
-        filename = get_random_string(length=10)
-        response = HttpResponse(
-            content_type='text/csv',
-            headers={
-                'Content-Disposition': f'attachment; filename="{filename}_reviews.csv"'
-            }
-        )
-        response.write(df.to_csv(index=False, encoding='utf-8'))
-        return response
+        return create_download_http_response(request, df, file_suffix='reviews')
+        # filename = get_random_string(length=10)
+        # response = HttpResponse(
+        #     content_type='text/csv',
+        #     headers={
+        #         'Content-Disposition': f'attachment; filename="{filename}_reviews.csv"'
+        #     }
+        # )
+        # response.write(df.to_csv(index=False, encoding='utf-8'))
+        # return response
+
+
+@require_POST
+def caculate_review_sentiment(request, pk, **kwargs):
+    company = get_object_or_404(klass=Business, pk=pk)
+    reviews = company.review_set.values_list('text', flat=True)
+    instance = CalculateSentiment(reviews)
+    result = instance.calculate_sentiment()
+    add_message(request, messages.SUCCESS, 'Sentiment calculated')
+    return redirect(reverse('reviews:list_reviews', args=[pk]))

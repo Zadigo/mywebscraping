@@ -10,7 +10,7 @@
             <div class="card">
                 <div class="card-body text-center">
                     <h4 class="h1 text-primary fw-bold">{{ number_of_companies|default:0 }}</h4>
-                    <p class="m-0">Companies</p>
+                    <p class="m-0">Google Place{{ number_of_companies|pluralize }}</p>
                 </div>
             </div>
         </div>
@@ -18,8 +18,8 @@
         <div class="col-sm-12 col-md-3">
             <div class="card">
                 <div class="card-body text-center">
-                    <h4 class="h1 text-primary fw-bold">{{ number_of_companies|default:0 }}</h4>
-                    <p class="m-0">Companies</p>
+                    <h4 class="h1 text-primary fw-bold">{{ number_of_reviews|default:0 }}</h4>
+                    <p class="m-0">Reviews</p>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
             </div>
         </div>
     </div>
-
+    
     <div class="row">
         <div class="col-sm-12 col-md-6">
             <div class="card mt-2">
