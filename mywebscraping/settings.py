@@ -44,7 +44,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'mylinkedin.urls'
+ROOT_URLCONF = 'mywebscraping.urls'
 
 TEMPLATES = [
     {
@@ -67,25 +67,25 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'mylinkedin.wsgi.application'
+WSGI_APPLICATION = 'mywebscraping.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'scraping_database'),
-        'USER': os.environ.get('DB_USER', 'equipe_scraping'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'xkJbausjtC7H2zq948QdVKPEfYmBDXc6rN'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': '5432'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': os.environ.get('DB_NAME', 'scraping_database'),
+    #     'USER': os.environ.get('DB_USER', 'equipe_scraping'),
+    #     'PASSWORD': os.environ.get('DB_PASSWORD', 'xkJbausjtC7H2zq948QdVKPEfYmBDXc6rN'),
+    #     'HOST': os.environ.get('DB_HOST', 'localhost'),
+    #     'PORT': '5433'
+    # }
 }
 
 

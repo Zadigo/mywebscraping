@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from django.utils.crypto import get_random_string
 from django.views.generic import FormView, TemplateView
 
-from mylinkedin import forms
+from mywebscraping import forms
 from profiles import utils
 from reviews.models import Business
 
