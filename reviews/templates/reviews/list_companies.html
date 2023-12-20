@@ -4,10 +4,17 @@
 {% block title %}Google comments{% endblock %}
 
 {% block base_cta %}
-<a href="{% url 'reviews:file_upload' %}" class="btn btn-primary btn-rounded">
-    <i class="fa fa-upload" class="me-2"></i>
-    Upload file
-</a>
+<div>
+    <a href="{% url 'reviews:start_robot' %}" class="btn btn-primary btn-rounded me-2">
+        <i class="fa fa-robot" class="me-2"></i>
+        Get reviews
+    </a>
+    
+    <a href="{% url 'reviews:file_upload' %}" class="btn btn-primary btn-rounded">
+        <i class="fa fa-upload" class="me-2"></i>
+        Upload file
+    </a>
+</div>
 {% endblock %}
 
 {% block iteration_block %}
@@ -20,9 +27,9 @@
                     <p>{{ company.review_set.count }} review{{ company.review_set.count|pluralize }}</p>
                 </a>
 
-                <a href="{{ company.feed_url|default:company.url }}" class="btn btn-sm btn-rounded btn-primary me-2 shadow-none" target="_blank" rel="noreferrer nofollow"><i class="fab fa-google"></i></a>
+                <a href="{{ company.feed_url|default:company.url }}" class="btn btn-sm btn-rounded btn-secondary me-2 shadow-none" target="_blank" rel="noreferrer nofollow"><i class="fab fa-google"></i></a>
                 
-                <a href="{{ company.website }}" class="btn btn-sm btn-rounded btn-primary shadow-none {% if company.website is None %}disabled{% endif %}" target="_blank" rel="noreferrer nofollow">
+                <a href="{{ company.website }}" class="btn btn-sm btn-rounded btn-secondary shadow-none {% if company.website is None %}disabled{% endif %}" target="_blank" rel="noreferrer nofollow">
                     <i class="fas fa-link"></i>
                 </a>
             </div>

@@ -1,9 +1,13 @@
+from functools import cached_property
+
 from django.db import models
 from django.db.models import Index
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
+
+from reviews.machine_learning.sentiment import calculate_text_sentiment
 
 
 class Business(models.Model):
@@ -120,6 +124,10 @@ class Review(models.Model):
 
     def __str__(self):
         return f'Comment: {self.pk}'
+
+    @cached_property
+    def sentiment(self):
+        return calculate_text_sentiment(self.text)
 
 
 @receiver(pre_save, sender=Review)

@@ -5,6 +5,10 @@ from textblob import TextBlob
 
 from mywebscraping.utils import create_filename
 
+def calculate_text_sentiment(text):
+    instance = TextBlob(text)
+    return instance.sentiment.polarity
+
 
 class CalculateSentiment:
     def __init__(self, documents):

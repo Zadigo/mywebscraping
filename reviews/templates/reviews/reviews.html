@@ -3,6 +3,32 @@
 
 {% block title %}Explore{% endblock %}
 
+{% block style %}
+<style>
+    article.card {
+        height: 280px;
+    }
+    article .card-text {
+        scroll-behavior: smooth;
+        overflow-y: scroll;
+        max-height: 100px;
+        height: 100px;
+    }
+    article .card-text::-webkit-scrollbar {
+        width: 8px;
+    }
+    article .card-text::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    article .card-text::-webkit-scrollbar-thumb {
+        background: #888;
+    }
+    article .card-text::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
+{% endblock %}
+
 {% block container %}
 <section class="my-5">
     {% comment %}
@@ -42,6 +68,7 @@
 
     <div class="row mt-4">
         <div class="col-sm-12 col-md-8 offset-md-2">
+            {% comment %}
             <form action="{% url 'reviews:calculate_sentiment' company.id %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-secondary btn-sm btn-rounded">
@@ -49,7 +76,9 @@
                     Calculate sentiment
                 </button>
             </form>
+            {% endcomment %}
 
+            {% comment %}
             <form class="card" method="post" enctype="multipart/form-data">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h2 class="h3 m-0">{{ company.name }}</h2>
@@ -63,8 +92,7 @@
                 <div class="card-body">
                     <div class="list-group">
                         {% for review in reviews %}
-                        <div
-                            class="list-group-item d-flex justify-content-between {% if profile.of_interest %}bg-light{% endif %}">
+                        <div class="list-group-item d-flex justify-content-between {% if profile.of_interest %}bg-light{% endif %}">
                             <div class="d-flex align-items-center">
                                 <div class="form-check me-3">
                                     <input id="linkedin-profile" class="form-check-input" type="checkbox" value="{{ review.id }}" name="linkedin-profile">
@@ -79,6 +107,71 @@
                     </div>
                 </div>
             </form>
+            {% endcomment %}
+
+            <div class="row">
+                <div class="col-sm-12 col-md-12">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h1 class="h3 fw-bold text-secondary mb-0">{{ company.name }}</h1>
+                        </div>
+
+                        <div class="card-footer d-flex justify-content-end">
+                            <a href="{% url 'reviews:download_csv_file' %}" class="btn btn-secondary btn-rounded" target="_parent"
+                                rel="nofollow noreferrer">
+                                <i class="fas fa-download ms-2"></i>
+                                Download csv
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-12 d-flex justify-content-end align-items-center gap-2 mt-2">
+                    <p class="text-body-tertiary m-0">{{ reviews|length }} review{{ reviews|pluralize }}</p>
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle btn-rounded" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'reviews:list_reviews' company.id %}?text=1">Text length</a></li>
+                            <li><a class="dropdown-item" href="#">Sentiment</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reviews:list_reviews' company.id %}?rating=asc">Rating - Ascending</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reviews:list_reviews' company.id %}?rating=desc">Rating - Descending</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                {% for review in reviews %}
+                <div class="col-sm-12 col-md-6">
+                    <article id="{{ review.review_id }}" data-company="{{ review.business.name|slugify }}" class="card mt-2 shadow-sm">
+                        <div class="card-header">
+                            {{ review.reviewer_name }} | {% for i in review.rating|times %}<i class="fas fa-star text-body-tertiary"></i>{% endfor %}
+                        </div>
+
+                        <div class="card-body">
+                            <div class="card-text">{{ review.text }}</div>
+                        </div>
+
+                        <div class="card-footer">
+                            {% comment %}
+                            {% if review.sentiment < 0 %}
+                            <div class="badge text-bg-danger">{{ review.sentiment|floatformat:"3" }}</div>
+                            {% elif review.sentiment == 0  %}
+                            <div class="badge text-bg-light">{{ review.sentiment|floatformat:"3" }}</div>  
+                            {% else %}
+                            <div class="badge text-bg-success">{{ review.sentiment|floatformat:"3" }}</div>  
+                            {% endif %}
+                            {% endcomment %}
+                            <div class="badge text-bg-secondary">{{ review.text|length }} characters</div>
+                        </div>
+                    </article>
+                </div>
+                {% empty %}
+                    Nothing
+                {% endfor %}
+            </div>
         </div>
     </div>
 </section>

@@ -4,7 +4,10 @@
 <section class="my-5">
     <div class="row">
         <div class="col-sm-12 col-md-12 my-3 mb-4">
-            <div class="d-flex justify-content-end">
+            <div class="d-flex justify-content-between">
+                <form action="{% url 'reviews:list_companies' %}" method="get" enctype="application/x-www-form-urlencoded">
+                    <input type="search" id="search" name="search" class="form-control" placeholder="Company name, address, country...">   
+                </form>
                 {% block base_cta %}{% endblock %}
             </div>
         </div>

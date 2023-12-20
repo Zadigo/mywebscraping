@@ -1,0 +1,30 @@
+{% extends "base_site.html" %}
+
+{% block container %}
+<div class="row">
+    <div class="col-sm-12 col-md-5 offset-md-3">
+        <section class="my-5">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+
+            <form action="" method="post" class="card" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% for key, error in form.errors.items %}
+                    {{ key }} {{ error}}
+                {% endfor %}
+
+                <div class="card-body">
+                    <input type="url" name="url" id="url" class="form-control" placeholder="Url...">
+                    <button type="submit" class="btn btn-primary btn-rounded">
+                        Get reviews
+                    </button>
+                </div>
+            </form>
+
+            {{ a }} {{ b }}
+        </section>
+    </div>
+</div>
+{% endblock %}
