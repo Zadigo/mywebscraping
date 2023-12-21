@@ -1,0 +1,21 @@
+[
+    {
+        "name": "Au Fournil de Pierre",
+        "url": "https://www.google.com/maps/place/Au+Fournil+de+Pierre/@50.663826,3.2013818,17z/data=!4m6!3m5!1s0x47c327d90b2087b1:0x4c97f38107dbfac8!8m2!3d50.6638226!4d3.2039567!16s%2Fg%2F11cs5xfqqk?entry=ttu",
+        "feed_url": null,
+        "address": "446 Rue Jules Guesde, 59510 Hem",
+        "rating": "4,5 etoiles",
+        "latitude": "50.663826",
+        "longitude": "3.2013818",
+        "number_of_reviews": "114",
+        "date": "2023-12-14 11:47:02.455842+00:00",
+        "additional_information": "446 Rue Jules Guesde, 59510 HemFerme bientot 13:30 Rouvre a 15:00 jeudi07:00-13:3015:00-19:30vendredi07:00-13:3015:00-19:30samedi07:00-13:3015:00-19:30dimanche07:00-12:30lundi07:00-13:3015:00-19:30mardi07:00-13:3015:00-19:30mercrediFermeSuggerer de nouveaux horaires09 86 78 59 77M673+GH HemEnvoyer vers votre telephone",
+        "telephone": "09 86 78 59 77",
+        "website": null,
+        "reviews": [
+            {
+                "google": "Is an invalid field"
+            }
+        ]
+    }
+]

@@ -3,51 +3,57 @@ import re
 from django.db.models import Value
 from django.utils.crypto import get_random_string
 from numpy import isin
+from nltk.tokenize import word_tokenize
 
 
-def clean_reviews(reviews):
+def clean_reviews_text(reviews):
     """Clean the text in the dictionnary for
     each given review"""
+    clean_reviews = []
     for review in reviews:
         text = review['text']
 
         if text is None:
+            clean_reviews.append(review)
             continue
 
-        tokens = text.split(' ')
-        tokens = filter(lambda x: x != '', tokens)
+        tokens = word_tokenize(text)
         text = ' '.join(tokens)
         text = re.sub('\n', '', text)
         review['text'] = text
-        yield review
+        clean_reviews.append(review)
+    return clean_reviews
 
 
 def parse_rating(reviews):
     """Parse the number value from the incoming
     rating text"""
+    clean_reviews = []
     for review in reviews:
         value = review['rating']
         if isinstance(value, (int, float)):
+            clean_reviews.append(review)
             continue
 
         if value is None:
+            clean_reviews.append(review)
             continue
 
         result = re.search('(\d+)', value)
         if result:
             review['rating'] = result.group(1)
-        yield review
+        clean_reviews.append(review)
+    return clean_reviews
 
 
 def parse_number_of_reviews(reviews):
     """Parse the number of reviews left by the
     reviewer in the incoming review number text"""
+    clean_reviews = []
     for review in reviews:
         value = review['reviewer_number_of_reviews']
-        if isinstance(value, (int, float)):
-            continue
-
-        if value is None:
+        if isinstance(value, (int, float)) or value is None:
+            clean_reviews.append(review)
             continue
 
         result = re.search(r'^(\d+)', value)
@@ -57,7 +63,8 @@ def parse_number_of_reviews(reviews):
         result = re.search(r'Local\sGuide\s+\W?\s+(\d+)', value)
         if result:
             review['reviewer_number_of_reviews'] = result.group(1)
-        yield review
+        clean_reviews.append(review)
+    return clean_reviews
 
 
 def clean_company_dictionnary(details):
@@ -80,15 +87,41 @@ def create_id(prefix, length=10):
 def file_upload_helper(instance, name):
     """Upload the review file to the 
     correct directory"""
-    name, extension = instance.name
+    name, extension = name.split('.', maxsplit=1)
     new_name = get_random_string(length=20)
     return f'reviews/{instance.company_id}/{new_name}.{extension}'
 
 
+def validate_file_reviews(data):
+    """Checks that the reviews in the reviews column
+    contains the required fields"""
+    missing_keys = set()
+    expected_review_columns = set([
+        'google_review_id', 'text', 'rating',
+        'period', 'reviewer_name', 'reviewer_number_of_reviews'
+    ])
+
+    def analyze_reviews(reviews):
+        for review in reviews:
+            difference = expected_review_columns.difference(set(review.keys()))
+            missing_keys.update(difference)
+
+    if isinstance(data, list):
+        for item in data:
+            analyze_reviews(item['reviews'])
+
+    if isinstance(data, dict):
+        analyze_reviews(data['reviews'])
+
+    return missing_keys
+
+
 def validate_file_integrity(data):
+    """Checks that the file structure is correct and
+    contains all the required fields for upload"""
     expected_columns = set([
-        'name', 'url', 'feed_url', 'address', 'rating', 
-        'latitude', 'longitude', 'number_of_reviews', 'date', 
+        'name', 'url', 'feed_url', 'address', 'rating',
+        'latitude', 'longitude', 'number_of_reviews', 'date',
         'additional_information', 'telephone', 'website', 'reviews'
     ])
 
@@ -98,7 +131,7 @@ def validate_file_integrity(data):
             keys = list(item.keys())
             difference = expected_columns.difference(set(keys))
             missing_keys.update(difference)
-    
+
     if isinstance(data, dict):
         keys = list(item.keys())
         difference = expected_columns.difference(set(keys))

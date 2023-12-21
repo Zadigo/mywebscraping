@@ -25,7 +25,7 @@ from reviews import utils
 from reviews.forms import ReviewsFileUploadForm, SearchForm, StartRobotForm
 from reviews.machine_learning.sentiment import CalculateSentiment
 from reviews.models import Company, Review
-from reviews.utils import (clean_company_dictionnary, clean_reviews,
+from reviews.utils import (clean_company_dictionnary,
                            parse_number_of_reviews, parse_rating)
 
 
@@ -109,23 +109,22 @@ class UploadReviewsView(FormView):
     def create_reviews(self, instance, reviews):
         """Bulk create reviews which is a quicker more
         efficient method than using the foreign key"""
-        r1 = clean_reviews(reviews)
-        r2 = parse_rating(r1)
-        cleaned_reviews = parse_number_of_reviews(r2)
+        r1 = utils.clean_reviews_text(reviews)
+        r2 = utils.parse_rating(r1)
+        cleaned_reviews = utils.parse_number_of_reviews(r2)
 
-        instances = []
+        new_reviews_objs = []
         for cleaned_review in cleaned_reviews:
             review = Review(
-                review_id=utils.create_id('comp'),
+                review_id=utils.create_id('rev'),
                 company=instance,
                 **cleaned_review
             )
-            instances.append(review)
+            new_reviews_objs.append(review)
 
-        objs = Review.objects.bulk_create(instances)
+        objs = Review.objects.bulk_create(new_reviews_objs)
 
     def form_valid(self, form):
-        test_run = False
         provided_company_name = form.cleaned_data.get('company_name')
         file = form.cleaned_data['reviews_file']
 
@@ -137,43 +136,56 @@ class UploadReviewsView(FormView):
             form.add_error(None, f"Your file is missing the required columns: {columns}")
             return super().form_invalid(form)
 
+        result = utils.validate_file_reviews(content)
+        if result:
+            columns = ', '.join(result)
+            form.add_error(
+                None, 
+                f"One of your review dictionnary is "
+                f"missing the required columns: {columns}"
+            )
+            return super().form_invalid(form)
+
         if isinstance(content, list):
             # Associate each company with the
             # reviews that should be created
             # for it's model instance
             instances = {}
-            for item in content:
-                reviews = item.pop('reviews')
-
-                item.pop('date')
-                item = clean_company_dictionnary(item)
-                company_name = item.pop('name')
-
-                # Save the file that was used
-                # to upload the reviews
-                item['reviews_file'] = file
+            for company_details in content:
+                reviews = company_details.pop('reviews')
+                company_details.pop('date')
+                company_details.pop('number_of_reviews')
+                clean_company_details = utils.clean_company_dictionnary(company_details)
+                company_name = clean_company_details.pop('name')
 
                 instance, _ = Company.objects.get_or_create(
                     name=company_name,
-                    defaults=item
+                    defaults=clean_company_details
                 )
+                # Save the file that was used
+                # to upload the reviews
+                instance.reviews_file = file
+                instance.save()
+
                 instances[instance] = reviews
 
             for key, value in instances.items():
-                self.create_reviews(instance, reviews)
+                self.create_reviews(key, value)
 
         if isinstance(content, dict):
             reviews = content.pop('reviews')
             content = clean_company_dictionnary(content)
 
             company_name = content.pop('name')
+            company_details.pop('date')
+            company_details.pop('number_of_reviews')
             company_name = provided_company_name or company_name
             instance, _ = Company.objects.get_or_create(
                 name=company_name,
                 defaults=content
             )
+            self.create_reviews(instance, reviews)
 
-        self.create_reviews(instance, reviews)
         return super().form_valid(form)
 
 

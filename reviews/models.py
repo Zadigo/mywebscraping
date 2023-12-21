@@ -1,9 +1,11 @@
+import logging
+import pathlib
 from functools import cached_property
 
 import nltk
 from django.db import models
 from django.db.models import Index
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
@@ -14,6 +16,7 @@ from reviews import utils
 from reviews.machine_learning.sentiment import calculate_text_sentiment
 from reviews.utils import create_id
 
+logger = logging.getLogger('django')
 
 class Company(models.Model):
     """Represents a company"""
@@ -153,6 +156,32 @@ def create_comment_id(instance, **kwargs):
 @receiver(pre_save, sender=Company)
 def create_company_id(instance, **kwargs):
     instance.company_id = create_id('comp')
+
+
+@receiver(post_delete, sender=Company)
+def delete_company_reviews_file(instance, **kwargs):
+    try:
+        path = pathlib.Path(instance.reviews_file.path)
+    except Exception:
+        # The path is None or Invalid
+        return
+    else:
+        # Make sure that the path exists and
+        # that we are dealing with a file to
+        # avoid any collateral inconveniences
+        if path.exists() and path.is_file():
+            parent = path.parent.absolute()
+            try:
+                parent.rmdir()
+            except Exception:
+                logger.error(
+                    "Could not delete file or "
+                    f"directory for {instance.company_id}"
+                )
+                # If we could not delete the file
+                # just continue with the deletion
+                # since this is a None critical action
+                return
 
 
 # @receiver(post_save, sender=Review)
