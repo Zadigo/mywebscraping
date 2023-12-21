@@ -52,7 +52,12 @@ def parse_number_of_reviews(reviews):
     clean_reviews = []
     for review in reviews:
         value = review['reviewer_number_of_reviews']
-        if isinstance(value, (int, float)) or value is None:
+        if isinstance(value, (int, float)):
+            clean_reviews.append(review)
+            continue
+
+        if value is None:
+            review['reviewer_number_of_reviews'] = 0
             clean_reviews.append(review)
             continue
 

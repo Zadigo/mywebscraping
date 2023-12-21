@@ -1,5 +1,9 @@
 from django.test import Client, RequestFactory, TestCase
-from reviews.api import views
+from django.urls import reverse
+from reviews.api import views as api_views
+from reviews import views
+from django.conf import settings
+from django.core.files import File
 
 EXAMPLE_DATA = {
     'name': 'Paul Point du Jour',
@@ -32,3 +36,21 @@ class TestAPIEndpoint(TestCase):
         request = client.post('google-comments/reviews/bulk', content_type='application/json', data=EXAMPLE_DATA)
         response = views.create_bulk_reviews(request)
         self.assertTrue(response.status_code == 200)
+
+
+class TestViews(TestCase):
+    def test_upload_view(self):
+        client = RequestFactory()
+        
+        with open(settings.MEDIA_ROOT / 'test_reviews_file.json') as f:
+            django_file = File(f, name='test_file.json')
+            data = {'reviews_file': django_file}
+            request = client.post(reverse('reviews:file_upload'), data)
+
+            view = views.UploadReviewsView()
+            view.setup(request)
+            response = view.post(request)
+
+            location = vars(response).get('Location', None)
+            self.assertIsNotNone(location)
+            self.assertEqual(location, reverse('reviews:list_reviews'))
