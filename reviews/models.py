@@ -1,19 +1,24 @@
 from functools import cached_property
 
+import nltk
 from django.db import models
 from django.db.models import Index
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
+from nltk.corpus import stopwords
+from nltk.tokenize import sent_tokenize, word_tokenize
 
+from reviews import utils
 from reviews.machine_learning.sentiment import calculate_text_sentiment
+from reviews.utils import create_id
 
 
-class Business(models.Model):
-    """Represents a business"""
+class Company(models.Model):
+    """Represents a company"""
 
-    business_id = models.CharField(
+    company_id = models.CharField(
         max_length=100,
         unique=True
     )
@@ -50,7 +55,7 @@ class Business(models.Model):
     )
     number_of_reviews = models.PositiveIntegerField(default=0)
     additional_information = models.JSONField(
-        help_text=_("Additional information the business"),
+        help_text=_("Additional information the company"),
         blank=True,
         null=True
     )
@@ -63,22 +68,27 @@ class Business(models.Model):
         blank=True,
         null=True
     )
+    reviews_file = models.FileField(
+        upload_to=utils.file_upload_helper,
+        blank=True,
+        help_text='Optionally save the file containing the reviews'
+    )
     modified_on = models.DateTimeField(auto_now=True)
     created_on = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_on', 'name']
-        verbose_name_plural = _('businesses')
+        verbose_name_plural = _('companies')
         indexes = [
-            Index(fields=['business_id'])
+            Index(fields=['company_id'])
         ]
 
     def __str__(self):
-        return f'Business: {self.name}'
+        return f'Company: {self.name}'
 
 
 class Review(models.Model):
-    """Represents a business' review"""
+    """Represents a single review"""
 
     review_id = models.CharField(
         max_length=100,
@@ -94,8 +104,8 @@ class Review(models.Model):
         max_length=400,
         help_text=_("The comment ID as referenced by Google")
     )
-    business = models.ForeignKey(
-        Business,
+    company = models.ForeignKey(
+        Company,
         models.CASCADE
     )
     period = models.CharField(
@@ -109,6 +119,11 @@ class Review(models.Model):
         null=True
     )
     text = models.TextField(
+        max_length=10000,
+        blank=True,
+        null=True
+    )
+    machine_learning_text = models.TextField(
         max_length=10000,
         blank=True,
         null=True
@@ -132,11 +147,26 @@ class Review(models.Model):
 
 @receiver(pre_save, sender=Review)
 def create_comment_id(instance, **kwargs):
-    new_id = f'rev_{get_random_string(length=5)}'
-    instance.review_id = new_id
+    instance.review_id = create_id('rev')
 
 
-@receiver(pre_save, sender=Business)
-def create_business_id(instance, **kwargs):
-    new_id = f'buis_{get_random_string(length=5)}'
-    instance.business_id = new_id
+@receiver(pre_save, sender=Company)
+def create_company_id(instance, **kwargs):
+    instance.company_id = create_id('comp')
+
+
+# @receiver(post_save, sender=Review)
+# def create_machine_learning_text(instance, created, **kwargs):
+#     """Creates a clean text removing stop words, lowering
+#     the text for eventual machine learning models"""
+#     if created:
+#         nltk.download('punkt')
+#         tokens = sent_tokenize(instance.text, language='french')
+#         lowered_text = ' '.join(token.lower() for token in tokens)
+
+#         nltk.download('stopwords')
+#         stop_words = stopwords.words('french')
+#         tokens = word_tokenize(lowered_text)
+#         clean_text = ' '.join(token for token in tokens if token not in stop_words)
+#         instance.machine_learning_text = clean_text
+#         instance.save()

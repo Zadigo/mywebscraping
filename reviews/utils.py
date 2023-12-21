@@ -1,6 +1,8 @@
 import re
 
 from django.db.models import Value
+from django.utils.crypto import get_random_string
+from numpy import isin
 
 
 def clean_reviews(reviews):
@@ -58,7 +60,9 @@ def parse_number_of_reviews(reviews):
         yield review
 
 
-def clean_business_dictionnary(details):
+def clean_company_dictionnary(details):
+    """Takes a dictionnary of a values and normalizes
+    the text, integers, floats... to Python objects"""
     rating = details['rating']
     if not isinstance(rating, (int, float)):
         result = re.match(r'^(\d\,?\d+)', rating)
@@ -66,3 +70,38 @@ def clean_business_dictionnary(details):
             value = result.group(1).replace(',', '.')
             details['rating'] = float(value)
     return details
+
+
+def create_id(prefix, length=10):
+    """Creates a random ID value with a prefix"""
+    return f'{prefix}_{get_random_string(length=length)}'
+
+
+def file_upload_helper(instance, name):
+    """Upload the review file to the 
+    correct directory"""
+    name, extension = instance.name
+    new_name = get_random_string(length=20)
+    return f'reviews/{instance.company_id}/{new_name}.{extension}'
+
+
+def validate_file_integrity(data):
+    expected_columns = set([
+        'name', 'url', 'feed_url', 'address', 'rating', 
+        'latitude', 'longitude', 'number_of_reviews', 'date', 
+        'additional_information', 'telephone', 'website', 'reviews'
+    ])
+
+    if isinstance(data, list):
+        missing_keys = set()
+        for item in data:
+            keys = list(item.keys())
+            difference = expected_columns.difference(set(keys))
+            missing_keys.update(difference)
+    
+    if isinstance(data, dict):
+        keys = list(item.keys())
+        difference = expected_columns.difference(set(keys))
+        missing_keys.update(difference)
+
+    return missing_keys

@@ -1,37 +1,38 @@
+import asyncio
 import csv
 import json
-import subprocess
-import asyncio
 import logging
-from django.db.models.query import QuerySet
+import subprocess
 
 import pandas
 from asgiref.sync import sync_to_async
-from django.shortcuts import render
 from django.contrib import messages
 from django.contrib.messages import add_message
 from django.db import transaction
+from django.db.models import Q
+from django.db.models.functions import Length
 from django.http.response import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.crypto import get_random_string
-from django.db.models.functions import Length
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
-from django.db.models import Q
+from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, FormView, ListView, View
+
 from mywebscraping.utils import create_filename
+from reviews import utils
 from reviews.forms import ReviewsFileUploadForm, SearchForm, StartRobotForm
 from reviews.machine_learning.sentiment import CalculateSentiment
-from reviews.models import Business, Review
-from reviews.utils import (clean_business_dictionnary, clean_reviews,
+from reviews.models import Company, Review
+from reviews.utils import (clean_company_dictionnary, clean_reviews,
                            parse_number_of_reviews, parse_rating)
 
 
 def create_download_http_response(request, dataframe, file_prefix=None, file_suffix=None):
     """Writes the results of a dataframe to an 
-    HTTPResponse object"""
+    HTTPResponse object so that the user can download
+    a csv file"""
     filename = create_filename(prefix=file_prefix, suffix=file_suffix)
     response = HttpResponse(
         content_type='text/csv',
@@ -43,10 +44,13 @@ def create_download_http_response(request, dataframe, file_prefix=None, file_suf
     return response
 
 
-class ListBusinesses(ListView):
-    model = Business
-    queryset = Business.objects.all()
-    template_name = 'reviews/list_companies.html'
+class ListCompaniesView(ListView):
+    """Shows the list of companies stored
+    in the current database"""
+
+    model = Company
+    queryset = Company.objects.all()
+    template_name = 'reviews/pages/list_companies.html'
     context_object_name = 'companies'
     search_form_class = SearchForm
 
@@ -62,10 +66,13 @@ class ListBusinesses(ListView):
         return queryset
 
 
-class CompanyView(DetailView):
-    model = Business
-    queryset = Business.objects.all()
-    template_name = 'reviews/reviews.html'
+class ListReviewsView(DetailView):
+    """Shows the reviews for a specific
+    given company of the database"""
+
+    model = Company
+    queryset = Company.objects.all()
+    template_name = 'reviews/pages/reviews.html'
     context_object_name = 'company'
 
     def get_context_data(self, **kwargs):
@@ -90,30 +97,27 @@ class CompanyView(DetailView):
         return context
 
 
-class CreateReviewsView(FormView):
+# @method_decorator(cache_page(1 * 60), method='dispatch')
+class UploadReviewsView(FormView):
     """Upload a file containing Google reviews
-    directly using a form"""
+    directly to the database using a form"""
 
     form_class = ReviewsFileUploadForm
     success_url = reverse_lazy('reviews:list_companies')
-    template_name = 'reviews/upload.html'
+    template_name = 'reviews/pages/upload.html'
 
     def create_reviews(self, instance, reviews):
+        """Bulk create reviews which is a quicker more
+        efficient method than using the foreign key"""
         r1 = clean_reviews(reviews)
         r2 = parse_rating(r1)
         cleaned_reviews = parse_number_of_reviews(r2)
 
-        # for review in cleaned_reviews:
-        #     try:
-        #         instance.review_set.create(**review)
-        #     except:
-        #         pass
-
         instances = []
         for cleaned_review in cleaned_reviews:
             review = Review(
-                review_id=f'rev_{get_random_string(length=5)}',
-                business=instance,
+                review_id=utils.create_id('comp'),
+                company=instance,
                 **cleaned_review
             )
             instances.append(review)
@@ -121,44 +125,62 @@ class CreateReviewsView(FormView):
         objs = Review.objects.bulk_create(instances)
 
     def form_valid(self, form):
-        file = form.cleaned_data['reviews']
+        test_run = False
+        provided_company_name = form.cleaned_data.get('company_name')
+        file = form.cleaned_data['reviews_file']
+
         content = json.loads(file.read())
 
-        if isinstance(content, list):
-            instances = {}
-            for business in content:
-                reviews = business.pop('reviews')
-                business.pop('date')
-                business = clean_business_dictionnary(business)
+        result = utils.validate_file_integrity(content)
+        if result:
+            columns = ', '.join(result)
+            form.add_error(None, f"Your file is missing the required columns: {columns}")
+            return super().form_invalid(form)
 
-                business_name = business.pop('name')
-                instance, _ = Business.objects.get_or_create(
-                    name=business_name,
-                    defaults=business
+        if isinstance(content, list):
+            # Associate each company with the
+            # reviews that should be created
+            # for it's model instance
+            instances = {}
+            for item in content:
+                reviews = item.pop('reviews')
+
+                item.pop('date')
+                item = clean_company_dictionnary(item)
+                company_name = item.pop('name')
+
+                # Save the file that was used
+                # to upload the reviews
+                item['reviews_file'] = file
+
+                instance, _ = Company.objects.get_or_create(
+                    name=company_name,
+                    defaults=item
                 )
                 instances[instance] = reviews
-                # self.create_reviews(instance, reviews)
 
             for key, value in instances.items():
                 self.create_reviews(instance, reviews)
 
         if isinstance(content, dict):
             reviews = content.pop('reviews')
-            content = clean_business_dictionnary(content)
+            content = clean_company_dictionnary(content)
 
-            business_name = content.pop('name')
-            instance, _ = Business.objects.get_or_create(
-                name=business_name,
+            company_name = content.pop('name')
+            company_name = provided_company_name or company_name
+            instance, _ = Company.objects.get_or_create(
+                name=company_name,
                 defaults=content
             )
-            self.create_reviews(instance, reviews)
+
+        self.create_reviews(instance, reviews)
         return super().form_valid(form)
 
 
 @method_decorator(never_cache, name='dispatch')
 class DownloadFileView(View):
     """Download a csv file containing the data
-    for each reviews for a business"""
+    for each reviews for a company"""
 
     http_method_names = ['get']
 
@@ -166,35 +188,16 @@ class DownloadFileView(View):
         queryset = Review.objects.values()
         df = pandas.DataFrame(queryset)
         return create_download_http_response(request, df, file_suffix='reviews')
-        # filename = get_random_string(length=10)
-        # response = HttpResponse(
-        #     content_type='text/csv',
-        #     headers={
-        #         'Content-Disposition': f'attachment; filename="{filename}_reviews.csv"'
-        #     }
-        # )
-        # response.write(df.to_csv(index=False, encoding='utf-8'))
-        # return response
-
-
-@require_POST
-def caculate_review_sentiment(request, pk, **kwargs):
-    company = get_object_or_404(klass=Business, pk=pk)
-    reviews = company.review_set.values_list('text', flat=True)
-    instance = CalculateSentiment(reviews)
-    result = instance.calculate_sentiment()
-    add_message(request, messages.SUCCESS, 'Sentiment calculated')
-    return redirect(reverse('reviews:list_reviews', args=[pk]))
-
+    
 
 class StartRobotView(View):
     """Starts the robot that gathers the comments
-    for a given url"""
+    for a given Google Place or Places"""
 
     form_class = StartRobotForm
 
     async def get(self, request, *args, **kwargs):
-        return render(request, 'pages/get_reviews.html')
+        return render(request, 'reviews/pages/get_reviews.html')
 
     async def post(self, request, **kwargs):
         # form = self.form_class(request.POST)
@@ -216,7 +219,17 @@ class StartRobotView(View):
             import requests
             response = requests.get('http://example.com')
             return response.content
-        
+
         a, b = await asyncio.gather(test_runner(), another_thing())
 
-        return render(request, 'pages/get_reviews.html', {'a': a, 'b': b})
+        return render(request, 'reviews/pages/get_reviews.html', {'a': a, 'b': b})
+
+
+@require_POST
+def caculate_review_sentiment(request, pk, **kwargs):
+    company = get_object_or_404(klass=Company, pk=pk)
+    reviews = company.review_set.values_list('text', flat=True)
+    instance = CalculateSentiment(reviews)
+    result = instance.calculate_sentiment()
+    add_message(request, messages.SUCCESS, 'Sentiment calculated')
+    return redirect(reverse('reviews:list_reviews', args=[pk]))

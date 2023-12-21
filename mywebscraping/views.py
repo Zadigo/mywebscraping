@@ -5,7 +5,7 @@ from django.views.generic import FormView, TemplateView
 
 from mywebscraping import forms
 from profiles import utils
-from reviews.models import Business, Review
+from reviews.models import Company, Review
 
 
 class HomeView(TemplateView):
@@ -14,7 +14,7 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        number_of_companies = Business.objects.count()
+        number_of_companies = Company.objects.count()
         context['number_of_companies'] = number_of_companies
         
         number_of_reviews = Review.objects.count()

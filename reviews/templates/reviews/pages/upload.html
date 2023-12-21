@@ -1,0 +1,13 @@
+{% extends "base_site.html" %}
+
+{% block title %}Upload Google Reviews{% endblock %}
+
+{% block container %}
+<section class="my-5">
+    <div class="row">
+        <div class="col-sm-12 col-md-6 offset-md-3">
+            {% include "reviews/includes/form.html" with title="Upload google reviews" upload_field_name="reviews_file" %}
+        </div>
+    </div>
+</section>
+{% endblock %}

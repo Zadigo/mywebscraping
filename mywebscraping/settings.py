@@ -74,18 +74,18 @@ WSGI_APPLICATION = 'mywebscraping.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
     # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': os.environ.get('DB_NAME', 'scraping_database'),
-    #     'USER': os.environ.get('DB_USER', 'equipe_scraping'),
-    #     'PASSWORD': os.environ.get('DB_PASSWORD', 'xkJbausjtC7H2zq948QdVKPEfYmBDXc6rN'),
-    #     'HOST': os.environ.get('DB_HOST', 'localhost'),
-    #     'PORT': '5433'
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'scraping_database'),
+        'USER': os.environ.get('DB_USER', 'equipe_scraping'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'xkJbausjtC7H2zq948QdVKPEfYmBDXc6rN'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': '5433'
+    }
 }
 
 

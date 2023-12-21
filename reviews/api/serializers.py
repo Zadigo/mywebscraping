@@ -3,7 +3,8 @@ import re
 from django.shortcuts import get_object_or_404
 from rest_framework import fields
 from rest_framework.serializers import Serializer
-from reviews.models import Business, Review
+
+from reviews.models import Company, Review
 
 
 class BusinessSerializer(Serializer):
@@ -61,7 +62,7 @@ class ReviewForm(Serializer):
         if result:
             validated_data['reviewer_number_of_reviews'] = result.group(1)
 
-        business = get_object_or_404(Business, business_id=business_id)
+        business = get_object_or_404(Company, business_id=business_id)
         instance = Review.objects.create(**validated_data, business=business)
         return instance
 
@@ -98,7 +99,7 @@ class BulkReviewForm(Serializer):
     def create(self, validated_data):
         reviews = validated_data.pop('reviews')
 
-        instance = Business.objects.create(**validated_data)
+        instance = Company.objects.create(**validated_data)
 
         review_objs = []
         for review in reviews:

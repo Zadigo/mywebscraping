@@ -1,14 +1,14 @@
 from django.contrib import admin
 
-from reviews.models import Business, Review
+from reviews.models import Company, Review
 
 
-@admin.register(Business)
-class BusinessAdmin(admin.ModelAdmin):
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
     list_display = ['name', 'created_on']
     date_hierarchy = 'created_on'
     actions = ['download_csv']
-    readonly_fields = ['business_id']
+    readonly_fields = ['company_id']
 
 
 @admin.register(Review)

@@ -1,4 +1,4 @@
-<form class="card" action="{% block url %}{% endblock %}" method="post" enctype="multipart/form-data">
+<form class="card shadow-sm" action="{% block url %}{% endblock %}" method="post" enctype="multipart/form-data">
     {% if title %}
         <div class="card-header">
             <h2 class="h4 mb-0">{{ title }}</h2>
@@ -17,10 +17,14 @@
         <p class="text-bg-tertiary">
             {% block hint %}{% endblock %}
         </p>
-
-        <input type="file" name="{{ upload_field_name }}" id="{{ upload_field_name }}" class="form-control" accept=".csv,.json">
+        
+        <input type="text" name="company-name" id="company-name" class="form-control p-2 mb-2" disabled placeholder="Enterprise name">
+        <input type="file" name="{{ upload_field_name }}" id="{{ upload_field_name }}" class="form-control p-2" accept=".csv,.json">
         <div class="d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary mt-4 btn-rounded btn-lg">Upload</button>
+            <button type="submit" class="btn btn-primary mt-4 btn-rounded btn-lg">
+                <i class="fas fa-upload me-2"></i>
+                Upload
+            </button>
         </div>
     </div>
 </form>
