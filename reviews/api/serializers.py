@@ -121,11 +121,13 @@ class BulkReviewForm(Serializer):
     def create(self, validated_data):
         reviews = validated_data.pop('reviews')
         instance = Company.objects.create(**validated_data)
+        
         reviews_objs = []
         for review in reviews:
             review['review_id'] = utils.create_id('rev')
             review['company'] = instance
             reviews_objs.append(Review(**review))
+        
         instances = Review.objects.bulk_create(reviews_objs)
         instance.review_set.bulk_create(instances)
         return instance
