@@ -197,8 +197,14 @@ class DownloadFileView(View):
     http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
-        queryset = Review.objects.values()
-        df = pandas.DataFrame(queryset)
+        company_id = request.GET.get('company', None)
+        queryset = Review.objects.all()
+        if company_id is not None:
+            queryset = queryset.filter(company__company_id=company_id)
+        columns = ['review_id', 'rating', 'text', 'company__name', 'reviewer_name',
+                   'reviewer_number_of_reviews', 'period', 
+                   'modified_on', 'created_on']
+        df = pandas.DataFrame(queryset.values(*columns))
         return create_download_http_response(request, df, file_suffix='reviews')
     
 

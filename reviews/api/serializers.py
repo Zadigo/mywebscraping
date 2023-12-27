@@ -10,8 +10,9 @@ from reviews.models import Company, Review
 
 class BusinessSerializer(Serializer):
     id = fields.IntegerField(read_only=True)
-    business_id = fields.CharField()
+    company_id = fields.CharField()
     name = fields.CharField()
+    current_number_of_reviews = fields.IntegerField()
 
 
 class ReviewSerializer(Serializer):
@@ -38,7 +39,7 @@ class BusinessForm(Serializer):
         business = Business.objects.create(**validated_data)
         return business
 
-
+# TODO: Remove business_id for company_id
 class ReviewForm(Serializer):
     """Form used to create a new review"""
 
@@ -72,7 +73,7 @@ class ReviewForm(Serializer):
 
 class SimpleReviewForm(Serializer):
     """Allows the creation of a review without
-    passing the business_id"""
+    passing the company_id"""
 
     google_review_id = fields.CharField()
     reviewer_name = fields.CharField(required=False)
@@ -99,8 +100,8 @@ class BulkReviewForm(Serializer):
     longitude = fields.CharField(allow_null=True)
     number_of_reviews = fields.IntegerField(default=0)
     additional_information = fields.CharField()
-    telephone = fields.CharField()
-    website = fields.URLField()
+    telephone = fields.CharField(allow_null=True)
+    website = fields.URLField(allow_null=True)
     reviews = SimpleReviewForm(many=True)
 
     def validate(self, attrs):
@@ -120,7 +121,11 @@ class BulkReviewForm(Serializer):
 
     def create(self, validated_data):
         reviews = validated_data.pop('reviews')
-        instance = Company.objects.create(**validated_data)
+        name = validated_data.pop('name')
+        instance, _ = Company.objects.get_or_create(
+            name=name, 
+            defaults=validated_data
+        )
         
         reviews_objs = []
         for review in reviews:
@@ -128,6 +133,5 @@ class BulkReviewForm(Serializer):
             review['company'] = instance
             reviews_objs.append(Review(**review))
         
-        instances = Review.objects.bulk_create(reviews_objs)
-        instance.review_set.bulk_create(instances)
+        Review.objects.bulk_create(reviews_objs)
         return instance

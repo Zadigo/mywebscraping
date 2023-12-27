@@ -94,6 +94,10 @@ class Company(models.Model):
 
     def __str__(self):
         return f'Company: {self.name}'
+    
+    @cached_property
+    def current_number_of_reviews(self):
+        return self.review_set.count()
 
 
 class Review(models.Model):

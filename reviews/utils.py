@@ -19,6 +19,7 @@ def clean_reviews_text(reviews):
         tokens = word_tokenize(text)
         text = ' '.join(tokens)
         text = re.sub('\n', '', text)
+        text = re.sub(';', '', text)
         review['text'] = text
         clean_reviews.append(review)
     return clean_reviews
