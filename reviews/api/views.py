@@ -8,6 +8,7 @@ from reviews.api.serializers import (BulkReviewForm, BusinessForm,
 
 @api_view(http_method_names=['post'])
 def create_review(request, **kwargs):
+    """Create a new review in the database"""
     serializer = ReviewForm(data=request.data)
     serializer.is_valid(raise_exception=True)
     instance = serializer.save()
@@ -17,6 +18,7 @@ def create_review(request, **kwargs):
 
 @api_view(http_method_names=['post'])
 def create_business(request, **kwargs):
+    """Create a new business in the database"""
     serializer = BusinessForm(data=request.data)
     serializer.is_valid(raise_exception=True)
     instance = serializer.save()
@@ -26,6 +28,9 @@ def create_business(request, **kwargs):
 
 @api_view(http_method_names=['post'])
 def create_bulk_reviews(request, **kwargs):
+    """Create multiple reviews for a given business
+    by passing a file or dictionnary that contains
+    both business information and reviews"""
     serializer = BulkReviewForm(data=request.data)
     serializer.is_valid(raise_exception=True)
     instance = serializer.save()

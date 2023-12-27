@@ -85,6 +85,12 @@ class Company(models.Model):
         indexes = [
             Index(fields=['company_id'])
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'address'], 
+                name='unique_name_for_address'
+            )
+        ]
 
     def __str__(self):
         return f'Company: {self.name}'
@@ -146,6 +152,12 @@ class Review(models.Model):
     @cached_property
     def sentiment(self):
         return calculate_text_sentiment(self.text)
+    
+    def is_incomplete(self):
+        """Returns a boolean state indicating that the review
+        might be missing addiational text that did not get
+        scrapped from the scrapping process"""
+        return True if '... Plus' in self.text else False
 
 
 @receiver(pre_save, sender=Review)
@@ -184,18 +196,18 @@ def delete_company_reviews_file(instance, **kwargs):
                 return
 
 
-# @receiver(post_save, sender=Review)
-# def create_machine_learning_text(instance, created, **kwargs):
-#     """Creates a clean text removing stop words, lowering
-#     the text for eventual machine learning models"""
-#     if created:
-#         nltk.download('punkt')
-#         tokens = sent_tokenize(instance.text, language='french')
-#         lowered_text = ' '.join(token.lower() for token in tokens)
+@receiver(post_save, sender=Review)
+def create_machine_learning_text(instance, created, **kwargs):
+    """Creates a clean text removing stop words, lowering
+    the text for eventual machine learning models"""
+    if created:
+        nltk.download('punkt')
+        tokens = sent_tokenize(instance.text, language='french')
+        lowered_text = ' '.join(token.lower() for token in tokens)
 
-#         nltk.download('stopwords')
-#         stop_words = stopwords.words('french')
-#         tokens = word_tokenize(lowered_text)
-#         clean_text = ' '.join(token for token in tokens if token not in stop_words)
-#         instance.machine_learning_text = clean_text
-#         instance.save()
+        nltk.download('stopwords')
+        stop_words = stopwords.words('french')
+        tokens = word_tokenize(lowered_text)
+        clean_text = ' '.join(token for token in tokens if token not in stop_words)
+        instance.machine_learning_text = clean_text
+        instance.save()

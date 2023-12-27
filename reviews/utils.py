@@ -2,7 +2,6 @@ import re
 
 from django.db.models import Value
 from django.utils.crypto import get_random_string
-from numpy import isin
 from nltk.tokenize import word_tokenize
 
 
@@ -27,7 +26,7 @@ def clean_reviews_text(reviews):
 
 def parse_rating(reviews):
     """Parse the number value from the incoming
-    rating text"""
+    rating text. This accepts a list of reviews"""
     clean_reviews = []
     for review in reviews:
         value = review['rating']
@@ -48,7 +47,8 @@ def parse_rating(reviews):
 
 def parse_number_of_reviews(reviews):
     """Parse the number of reviews left by the
-    reviewer in the incoming review number text"""
+    reviewer in the incoming review number text.
+    This accepts a list of reviews"""
     clean_reviews = []
     for review in reviews:
         value = review['reviewer_number_of_reviews']
@@ -73,8 +73,9 @@ def parse_number_of_reviews(reviews):
 
 
 def clean_company_dictionnary(details):
-    """Takes a dictionnary of a values and normalizes
-    the text, integers, floats... to Python objects"""
+    """Takes a dictionnary as in 
+    {"name": ..., ..., "reviews": []} and normalizes the 
+    text, integers, floats... to Python objects"""
     rating = details['rating']
     if not isinstance(rating, (int, float)):
         result = re.match(r'^(\d\,?\d+)', rating)
@@ -143,3 +144,24 @@ def validate_file_integrity(data):
         missing_keys.update(difference)
 
     return missing_keys
+
+
+def parse_coordinates(url):
+    """From a given url parse the coordinates
+    for the given business"""
+    if url is None:
+        return None, None
+
+    result = re.search(
+        r'\/@(?P<latitude>\d+\.\d+)\,(?P<longitude>\d+\.\d+)', url)
+    if result:
+        items = result.groupdict()
+        return items['latitude'], items['longitude']
+    return None, None
+
+
+def create_machine_learning_text(text):
+    from nltk.tokenize import word_tokenize
+    lower = str(text).lower()
+    tokens = word_tokenize(text, language='french')
+    return ' '.join(tokens)

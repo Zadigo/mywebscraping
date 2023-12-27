@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import fields
 from rest_framework.serializers import Serializer
 
+from reviews import utils
 from reviews.models import Company, Review
 
 
@@ -39,6 +40,8 @@ class BusinessForm(Serializer):
 
 
 class ReviewForm(Serializer):
+    """Form used to create a new review"""
+
     business_id = fields.CharField()
     google_review_id = fields.CharField()
     reviewer_name = fields.CharField(required=False)
@@ -73,44 +76,56 @@ class SimpleReviewForm(Serializer):
 
     google_review_id = fields.CharField()
     reviewer_name = fields.CharField(required=False)
-    reviewer_number_of_reviews = fields.CharField(required=False)
+    reviewer_number_of_reviews = fields.CharField(
+        required=False, 
+        allow_null=True
+    )
     period = fields.CharField()
     rating = fields.CharField()
-    text = fields.CharField()
+    text = fields.CharField(allow_null=True)
 
 
 class BulkReviewForm(Serializer):
     """Create reviews by passing both the business
-    information and the reviews"""
+    information and its reviews"""
 
     name = fields.CharField()
     url = fields.URLField()
-    feed_url = fields.URLField()
+    feed_url = fields.URLField(allow_null=True)
     address = fields.CharField()
-    rating = fields.DecimalField(5, decimal_places=2)
-    latitude = fields.CharField()
-    longitude = fields.CharField()
+    # rating = fields.DecimalField(5, decimal_places=2)
+    rating = fields.CharField()
+    latitude = fields.CharField(allow_null=True)
+    longitude = fields.CharField(allow_null=True)
     number_of_reviews = fields.IntegerField(default=0)
-    # additional_information = fields.JSONField()
+    additional_information = fields.CharField()
     telephone = fields.CharField()
     website = fields.URLField()
     reviews = SimpleReviewForm(many=True)
 
+    def validate(self, attrs):
+        reviews = attrs['reviews']
+
+        r1 = utils.parse_rating(reviews)
+        clean_reviews = utils.parse_number_of_reviews(r1)
+        attrs['reviews'] = clean_reviews
+        
+        clean_attrs = utils.clean_company_dictionnary(attrs)
+
+        longitude, latitude = utils.parse_coordinates(attrs['url'])
+        clean_attrs['longitude'] = longitude
+        clean_attrs['latitude'] = latitude
+
+        return clean_attrs
+
     def create(self, validated_data):
         reviews = validated_data.pop('reviews')
-
         instance = Company.objects.create(**validated_data)
-
-        review_objs = []
+        reviews_objs = []
         for review in reviews:
-            result = re.match(r'^(\d+)', review['rating'])
-            if result:
-                review['rating'] = result.group(1)
-
-            result = re.match(r'^(\d+)', review['reviewer_number_of_reviews'])
-            if result:
-                review['reviewer_number_of_reviews'] = result.group(1)
-            review_objs.append(Review(business=instance, **review))
-
-        reviews = [review.save() for review in review_objs]
+            review['review_id'] = utils.create_id('rev')
+            review['company'] = instance
+            reviews_objs.append(Review(**review))
+        instances = Review.objects.bulk_create(reviews_objs)
+        instance.review_set.bulk_create(instances)
         return instance
