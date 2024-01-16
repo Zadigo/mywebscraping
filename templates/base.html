@@ -152,13 +152,9 @@
                     darkMode
                 }
             },
-            // TODO: For testing only
             data() {
                 return {
-                    email: null,
-                    showMeetingModal: false,
-                    showContactModal: false,
-                    showLanguageModal: false
+
                 }
             },
             methods: {
@@ -168,7 +164,7 @@
 
         // app.use(router)
 
-        app.use((app) => { app.config.globalProperties.http = axios })
+        // app.use((app) => { app.config.globalProperties.$http = axios })
     </script>
 
     {% block vuejs_components %}{% endblock %}

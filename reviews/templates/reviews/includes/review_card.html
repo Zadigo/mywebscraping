@@ -1,0 +1,27 @@
+{% load iteration %}
+
+<div class="col-sm-12 col-md-6">
+    <article id="{{ review.review_id }}" data-company="{{ review.business.name|slugify }}" class="card mt-2 shadow-sm">
+        <div class="card-header">
+            {{ review.reviewer_name }} | {% for i in review.rating|times %}<i
+                class="fas fa-star text-body-tertiary"></i>{% endfor %}
+        </div>
+
+        <div class="card-body">
+            <div class="card-text">{{ review.text }}</div>
+        </div>
+
+        <div class="card-footer">
+            {% comment %}
+                {% if review.sentiment < 0 %}
+                    <div class="badge text-bg-danger">{{ review.sentiment|floatformat:"3" }}</div>
+                {% elif review.sentiment == 0 %}
+                    <div class="badge text-bg-light">{{ review.sentiment|floatformat:"3" }}</div>
+                {% else %}
+                    <div class="badge text-bg-success">{{ review.sentiment|floatformat:"3" }}</div>
+                {% endif %}
+            {% endcomment %}
+            <div class="badge text-bg-secondary">{{ review.text|length }} characters</div>
+        </div>
+    </article>
+</div>

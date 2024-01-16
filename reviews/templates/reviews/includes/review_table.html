@@ -1,0 +1,38 @@
+{% load iteration %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive-lg">
+            <table class="table table-hover table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">
+                            <a href="{% url 'reviews:list_reviews' company.id %}?rating=asc">
+                                <i class="fas fa-sort me-2"></i>Text
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a href="{% url 'reviews:list_reviews' company.id %}?rating=asc">
+                                <i class="fas fa-sort me-2"></i>Rating
+                            </a>
+                        </th>
+                        <th scope="col"><i class="fas fa-sort me-2"></i>Stars</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    {% for review in reviews %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ review.text }}</td>
+                            <td>{{ review.rating }}</td>
+                            <td>
+                                {% for i in review.rating|times %}<i class="fas fa-star text-body-tertiary"></i>{% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
